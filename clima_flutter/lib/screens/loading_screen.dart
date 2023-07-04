@@ -1,39 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:clima_flutter/services/location.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoadingScreen extends StatefulWidget {
   @override
   _LoadingScreenState createState() => _LoadingScreenState();
 }
 
-void getLocation() async {
-  Location location = Location();
-
-  await location.getCurrentLocation();
-
-  print(location.latitude);
-  print(location.longitude);
-}
-
-void getData() async {
-  http.Response response = await http.get(
-    Uri.parse(
-        'https://samples.openweathermap.org/data/2.5/forecast?id=524901&appid=b1b15e88fa797225412429c1c50c122a1'),
-  );
-  if (response.statusCode == 200) {
-    String data = response.body;
-    print(data);
-  } else {
-    print(response.statusCode);
-  }
-}
-
 class _LoadingScreenState extends State<LoadingScreen> {
+  double? latitude;
+  double? longitude;
+  final apiKey = '6347e5e71c5d2163254a3a777714a1c5';
+
+  void getLocation() async {
+    Location location = Location();
+
+    await location.getCurrentLocation();
+
+    latitude = location.latitude;
+    longitude = location.longitude;
+    getData();
+  }
+
+  void getData() async {
+    http.Response response = await http.get(
+      Uri.parse(
+        'https://api.openweathermap.org/data/3.0/onecall?lat=$latitude&lon=-$longitude&appid=$apiKey',
+      ),
+    );
+    if (response.statusCode == 200) {
+      print('status code 200');
+      String data = response.body;
+
+      var decodedData = jsonDecode(data);
+
+      double temp = decodedData['list'][0]['main']['temp'];
+      int condition = decodedData['list'][0]['weather'][0]['id'];
+      String city = 'Tornoto'; // this is garbage value
+
+      print(temp);
+      print(condition);
+      print(city);
+    } else {
+      print('did not get the api key');
+      print(response.statusCode);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    getLocation();
   }
 
   @override
@@ -45,7 +62,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     // } catch (e) {
     //   print(e);
     // }
-    getData();
+    getLocation();
     return const Scaffold();
   }
 }
