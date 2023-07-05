@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:clima_flutter/services/location.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:clima_flutter/services/networking.dart';
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -11,41 +10,22 @@ class LoadingScreen extends StatefulWidget {
 class _LoadingScreenState extends State<LoadingScreen> {
   double? latitude;
   double? longitude;
-  final apiKey = '6347e5e71c5d2163254a3a777714a1c5';
+  final apiKey = '6e01d87f1521cd1e2efc4ca5cc29b3bd';
 
-  void getLocation() async {
+  void getLocationData() async {
     Location location = Location();
-
     await location.getCurrentLocation();
-
     latitude = location.latitude;
     longitude = location.longitude;
-    getData();
-  }
 
-  void getData() async {
-    http.Response response = await http.get(
-      Uri.parse(
-        'https://api.openweathermap.org/data/3.0/onecall?lat=$latitude&lon=-$longitude&appid=$apiKey',
-      ),
-    );
-    if (response.statusCode == 200) {
-      print('status code 200');
-      String data = response.body;
+    String url =
+        'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey';
+    NetworkHelper networkHelper = NetworkHelper(url: url);
+    var decodedData = await networkHelper.getData();
 
-      var decodedData = jsonDecode(data);
-
-      double temp = decodedData['list'][0]['main']['temp'];
-      int condition = decodedData['list'][0]['weather'][0]['id'];
-      String city = 'Tornoto'; // this is garbage value
-
-      print(temp);
-      print(condition);
-      print(city);
-    } else {
-      print('did not get the api key');
-      print(response.statusCode);
-    }
+    double temp = decodedData['main']['temp'];
+    int condition = decodedData['weather'][0]['id'];
+    String city = decodedData['name'];
   }
 
   @override
@@ -62,7 +42,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     // } catch (e) {
     //   print(e);
     // }
-    getLocation();
+    getLocationData();
     return const Scaffold();
   }
 }
