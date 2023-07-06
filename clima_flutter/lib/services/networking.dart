@@ -14,8 +14,7 @@ class NetworkHelper {
       print('status code 200');
       String data = response.body;
 
-      var decodedData = jsonDecode(data);
-      return decodedData;
+      return jsonDecode(data);
     } else {
       print('did not get the api key');
       print(response.statusCode);
